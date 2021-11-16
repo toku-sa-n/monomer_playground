@@ -46,7 +46,7 @@ handleEvent _ _ model event =
     MoveUp    -> [Model $ model & position +~ V2 0 1]
     MoveDown  -> [Model $ model & position +~ V2 0 (-1)]
     MoveRight -> [Model $ model & position +~ V2 1 0]
-    MoveLeft  -> [Model $ model & position +~ V2 0 (-1)]
+    MoveLeft  -> [Model $ model & position +~ V2 (-1) 0]
 
 buildUI :: WidgetEnv AppModel Event -> AppModel -> WidgetNode AppModel Event
 buildUI wenv model = widgetTree
