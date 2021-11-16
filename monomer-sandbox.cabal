@@ -38,7 +38,7 @@ executable monomer-sandbox
                     , JuicyPixels-extra
                     , lens
                     , linear
-                    , monomer
+                    , monomer >= 1.2.0.0
                     , text
                     , text-show
     hs-source-dirs:   app
