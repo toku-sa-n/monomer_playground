@@ -9,6 +9,7 @@ module Main
 import qualified Codec.Picture                   as Pic
 import           Codec.Picture.Extra             (crop)
 import           Control.Lens                    (makeLenses, (&), (+~), (^.))
+import qualified Data.ByteString                 as B
 import qualified Data.Text                       as T
 import           Data.Vector.Storable.ByteString (vectorToByteString)
 import           Linear.V2                       (V2 (V2))
@@ -19,10 +20,12 @@ import           Monomer                         (AppEventResponse,
                                                   appTheme, darkTheme, imageMem,
                                                   keystroke, label, startApp,
                                                   vstack)
+import           TextShow                        (TextShow (showt))
 
 data AppModel =
   AppModel
     { _position :: V2 Int
+    , _name     :: Int
     , _dogImage :: Pic.Image Pic.PixelRGBA8
     }
   deriving (Eq)
@@ -43,10 +46,10 @@ handleEvent ::
   -> [AppEventResponse AppModel Event]
 handleEvent _ _ model event =
   case event of
-    MoveUp    -> [Model $ model & position +~ V2 0 1]
-    MoveDown  -> [Model $ model & position +~ V2 0 (-1)]
-    MoveRight -> [Model $ model & position +~ V2 1 0]
-    MoveLeft  -> [Model $ model & position +~ V2 (-1) 0]
+    MoveUp    -> [Model $ model & position +~ V2 0 1 & name +~ 1]
+    MoveDown  -> [Model $ model & position +~ V2 0 (-1) & name +~ 1]
+    MoveRight -> [Model $ model & position +~ V2 1 0 & name +~ 1]
+    MoveLeft  -> [Model $ model & position +~ V2 (-1) 0 & name +~ 1]
 
 buildUI :: WidgetEnv AppModel Event -> AppModel -> WidgetNode AppModel Event
 buildUI wenv model = widgetTree
@@ -55,7 +58,7 @@ buildUI wenv model = widgetTree
       withKeys $
       vstack
         [ label $ T.pack $ "Position: " <> show (model ^. position)
-        , imageMem "dog" byteImage $
+        , imageMem (showt $ model ^. name) byteImage $
           Size (fromIntegral lenX) (fromIntegral lenY)
         ]
     withKeys =
@@ -82,7 +85,7 @@ main = do
        Right x -> x
        Left _  -> error "Failed to load the image.") <$>
     Pic.readImage "./dog.jpg"
-  let model = AppModel (V2 100 100) img
+  let model = AppModel (V2 100 100) 0 img
   startApp
     model
     handleEvent
