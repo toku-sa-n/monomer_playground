@@ -18,6 +18,7 @@ import Linear.V2 (V2 (V2))
 import Monomer
   ( AnimationMsg (AnimationFinished, AnimationStart, AnimationStop),
     AppEventResponse,
+    CmbBgColor (bgColor),
     CmbHeight (height),
     CmbOnFinished (onFinished),
     CmbStyleBasic (styleBasic),
@@ -32,6 +33,8 @@ import Monomer
     animFadeOut_,
     appFontDef,
     appTheme,
+    black,
+    box,
     darkTheme,
     hstack,
     imageMem,
@@ -42,6 +45,7 @@ import Monomer
     startApp,
     vstack,
   )
+import qualified Monomer.Lens as L
 import TextShow (TextShow (showt))
 
 data AppModel = AppModel
@@ -53,7 +57,6 @@ makeLenses ''AppModel
 data Event
   = ShowNext
   | Update
-  | Update2
 
 handleEvent ::
   WidgetEnv AppModel Event ->
@@ -71,38 +74,26 @@ handleEvent _ _ model event =
           ]
       | otherwise -> []
     Update ->
-      [ Event Update2,
-        -- Model $ model & visible .~ False,
+      [ Model $ model & index -~ 1 & changing .~ False & visible .~ True & index %~ max 0,
         Message (WidgetKey "animFadeIn0") AnimationStart
       ]
-    Update2 -> [Model $ model & index +~ 1 & changing .~ False & visible .~ True]
 
 buildUI :: WidgetEnv AppModel Event -> AppModel -> WidgetNode AppModel Event
 buildUI wenv model = widgetTree
   where
     widgetTree =
-      withKeys $ dualAnim 0 $ label (showt $ model ^. index) `styleBasic` [textSize 128, height 128] `nodeVisible` (model ^. visible)
+      withKeys $ box (dualAnim 0 $ label (if model ^. index == 0 then "0♡" else showt $ model ^. index) `styleBasic` [textSize 128, height 128] `nodeVisible` (model ^. visible)) `styleBasic` [bgColor $ black & L.a .~ 0.5]
     withKeys = keystroke [("Enter", ShowNext)]
     dualAnim n c = outer
       where
         inner = animFadeIn c `nodeKey` pack ("animFadeIn" ++ show n)
         outer = animFadeOut_ [onFinished Update] inner `nodeKey` pack ("animFadeOut" ++ show n)
 
-clipSize :: V2 Int
-clipSize = V2 100 100
-
 main :: IO ()
 main = do
-  img <-
-    Pic.convertRGBA8
-      . ( \case
-            Right x -> x
-            Left _ -> error "Failed to load the image."
-        )
-      <$> Pic.readImage "./dog.jpg"
-  let model = AppModel 0 False True
+  let model = AppModel 5 False True
   startApp
     model
     handleEvent
     buildUI
-    [appTheme darkTheme, appFontDef "Regular" "Roboto-Regular.ttf"]
+    [appTheme darkTheme, appFontDef "Regular" "NotoSansJP-Light.otf"]
